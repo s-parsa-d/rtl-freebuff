@@ -1,0 +1,9 @@
+# appimagetool downloaded on demand (upstream binary, ~8 MB)
+tools/appimagetool.AppImage
+
+# build logs / scratch
+build.log
+*.building
+*.tmp
+.DS_Store
+Thumbs.db
