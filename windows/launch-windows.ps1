@@ -1,4 +1,4 @@
-<#
+﻿<#
   Freebuff RTL — Windows launcher
 
     .\windows\launch-windows.ps1              patch if needed, then start the app
@@ -23,7 +23,7 @@ $Apply = Join-Path $PSScriptRoot 'apply-windows.ps1'
 function Get-Install {
   $candidates = New-Object System.Collections.Generic.List[string]
   $local = $env:LOCALAPPDATA
-  foreach ($name in @('Freebuff', 'Freebuff Desktop', 'freebuff')) {
+  foreach ($name in @('Freebuff', 'Freebuff Desktop', 'freebuff', '@codebufffreebuff-desktop')) {
     $candidates.Add((Join-Path $local "Programs\$name")) | Out-Null
     $candidates.Add((Join-Path $env:ProgramFiles $name)) | Out-Null
     $candidates.Add((Join-Path ${env:ProgramFiles(x86)} $name)) | Out-Null

@@ -47,10 +47,17 @@ sudo ./linux/apply-dir.sh --root /opt/Freebuff   # اگر در /opt نصب اس�
 ```powershell
 # در PowerShell (برای نصب در Program Files با دسترسی Administrator)
 .\windows\apply-windows.ps1
-.\windows\install-shortcut.ps1        # میانبر «Freebuff (فارسی)» روی دسکتاپ + منوی استارت
+.\windows\install-shortcut.ps1        # میانبر «Freebuff RTL» روی دسکتاپ + منوی استارت
 ```
 
-از این به بعد اپ را از همان میانبر اجرا کن؛ `launch-windows.ps1` مخفی اجرا می‌شود، اگر آپدیت پچ را پاک کرده باشد دوباره می‌سازد و بعد اپ را بالا می‌آورد. (اسکریپت‌های ویندوز فقط PowerShell لازم دارند، به Node نیازی نیست.)
+از این به بعد اپ را از همان میانبر «Freebuff RTL» اجرا کن؛ `launch-windows.ps1` مخفی اجرا می‌شود، اگر آپدیت پچ را پاک کرده باشد دوباره می‌سازد و بعد اپ را بالا می‌آورد. (اسکریپت‌های ویندوز فقط PowerShell لازم دارند، به Node نیازی نیست.)
+
+**نکته‌های ویندوز:**
+
+- اگر `running scripts is disabled` گرفتی، یک بار در همان پنجره `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` بزن یا اسکریپت را با `powershell -ExecutionPolicy Bypass -File ...` اجرا کن.
+- اسکریپت‌ها حتماً باید **UTF-8 با BOM** ذخیره شوند (متن فارسی داخلشان است)؛ در غیر این صورت PowerShell 5.1 پارس را خراب می‌کند.
+- اگر نصب اپ پوشه‌ای غیر از `Freebuff` دارد (مثلاً `@codebufffreebuff-desktop`)، اسکریپت خودش پیدایش می‌کند؛ وگرنه با `-Root <مسیر resources>` بده.
+- اسم میانبر لاتین است (`Freebuff RTL`) چون `WScript.Shell` در ویندوزهای با کدپیج غیرفارسی نمی‌تواند فایل `.lnk` با اسم فارسی بسازد.
 
 ## بعد از هر آپدیت (مهم)
 
@@ -60,7 +67,7 @@ sudo ./linux/apply-dir.sh --root /opt/Freebuff   # اگر در /opt نصب اس�
 |---|---|
 | Linux | همیشه از `freebuff-rtl` (یا میانبر منو → Freebuff) اپ را باز کن |
 | macOS | همیشه `macos/launch.command` (یا alias آن در Dock) را باز کن، یا `install-launchagent.sh` را نصب کن |
-| Windows | همیشه میانبر «Freebuff (فارسی)» را اجرا کن |
+| Windows | همیشه میانبر «Freebuff RTL» را اجرا کن |
 
 منطق ساده است: لانچر می‌بیند فایل‌های پچ وجود ندارند (یعنی نسخهٔ تازه آمده)، پچ را از نو می‌سازد و بعد اپ را اجرا می‌کند.
 
@@ -93,7 +100,7 @@ sudo ./linux/apply-dir.sh --root /opt/Freebuff   # اگر در /opt نصب اس�
 | Linux / AppImage ‏(x86_64) | ✅ روی Arch تست شد (پچ، بازبینی ایمیج، اجرا، بازگردانی پچ بعد از آپدیت) |
 | Linux / نصب دایرکتوری | ✅ منطق مشترک `tools/apply.mjs` تست شده |
 | macOS | ⚠️ اسکریپت نوشته شده ولی روی مک تست نشده (Pathها و `codesign` استانداردند) |
-| Windows | ⚠️ اسکریپت نوشته شده ولی روی ویندوز تست نشده |
+| Windows | ✅ روی Windows 10/11 تست شد (پچ، میانبر دسکتاپ/استارت، لانچر) |
 
 اگر روی مک/ویندوز اجرا کردی و جایی خطا داد، خطا را در Issue بگذار.
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
   Freebuff RTL — Windows patcher (pure PowerShell, no Node needed)
 
     .\windows\apply-windows.ps1                    auto-detect and patch
