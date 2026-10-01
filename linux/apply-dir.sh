@@ -1,22 +1,19 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-#  Linux — patch a *directory* install of Freebuff
-#  (deb / rpm / pacman / tar.gz layout, or an AppImage you extracted yourself)
-#
-#      ./linux/apply-dir.sh                  auto-detect
-#      ./linux/apply-dir.sh --root <dir>     explicit (e.g. /opt/Freebuff)
-#      ./linux/apply-dir.sh --check          only report
-#      ./linux/apply-dir.sh --list           show what was found
-#
-#  In this layout the files are plain files on disk, so the patch is applied in
-#  place: patch/rtl.css + rtl.js + fonts are copied into
-#  <app>/resources/orchestrator/ui and linked from index.html. No repack needed.
-#  Needs: bash, node (tools/apply.mjs).
-# ---------------------------------------------------------------------------
 set -euo pipefail
 
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+
+usage() {
+  cat <<'USAGE'
+Linux — patch a directory install of Freebuff
+
+    ./linux/apply-dir.sh                  auto-detect
+    ./linux/apply-dir.sh --root <dir>     explicit (e.g. /opt/Freebuff)
+    ./linux/apply-dir.sh --check          only report
+    ./linux/apply-dir.sh --list           show what was found
+USAGE
+}
 
 TARGET="${FREEBUFF_ROOT:-}"
 MODE="apply"
@@ -25,14 +22,13 @@ while (($#)); do
     --root) TARGET="${2:-}"; shift 2 ;;
     --check) MODE="check"; shift ;;
     --list) MODE="list"; shift ;;
-    -h | --help) sed -n '3,15p' "$SELF" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) usage; exit 0 ;;
     *) echo "گزینهٔ ناشناخته: $1" >&2; exit 2 ;;
   esac
 done
 
 command -v node >/dev/null 2>&1 || { echo "node لازم است (برای tools/apply.mjs)." >&2; exit 1; }
 
-# --- پیدا کردن نصب‌های دایرکتوری -------------------------------------------------
 candidates() {
   local c
   for c in \
@@ -41,7 +37,6 @@ candidates() {
     /usr/lib/freebuff /usr/share/freebuff; do
     [[ -f "$c/resources/orchestrator/ui/index.html" ]] && printf '%s\n' "$c"
   done
-  # هر AppDir استخراج‌شده‌ای که کاربر ساخته باشد
   local d
   for d in "$HOME" /tmp; do
     for c in "$d"/squashfs-root "$d"/*.AppDir; do

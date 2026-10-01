@@ -1,20 +1,4 @@
-﻿<#
-  Freebuff RTL — Windows patcher (pure PowerShell, no Node needed)
-
-    .\windows\apply-windows.ps1                    auto-detect and patch
-    .\windows\apply-windows.ps1 -Check             only report (exit 1 if stock)
-    .\windows\apply-windows.ps1 -Root <dir>        explicit install dir
-    .\windows\apply-windows.ps1 -Install <setup.exe>   (optional) unpack an
-                                                   electron-builder NSIS setup
-                                                   with 7-Zip and patch it
-
-  The patch lives inside the app's resources folder:
-      %LOCALAPPDATA%\Programs\Freebuff\resources\orchestrator\ui
-  Only freebuff-rtl.css / freebuff-rtl.js / fonts\freebuff-rtl\* are added and
-  two lines are linked from index.html — nothing else is touched.
-  If the app is installed under Program Files, run PowerShell as Administrator.
-#>
-param(
+﻿param(
   [string]$Root,
   [string]$Install,
   [switch]$Check,
@@ -38,25 +22,26 @@ function Get-Candidates {
   $list = New-Object System.Collections.Generic.List[string]
   if ($Root) { $list.Add($Root) | Out-Null; $list.Add((Join-Path $Root 'resources')) | Out-Null }
   $local = $env:LOCALAPPDATA
-  foreach ($name in @('Freebuff', 'Freebuff Desktop', 'freebuff')) {
+  foreach ($name in @('Freebuff', 'Freebuff Desktop', 'freebuff', '@codebufffreebuff-desktop')) {
     $list.Add((Join-Path $local "Programs\$name\resources")) | Out-Null
     $list.Add((Join-Path $local "Programs\$name")) | Out-Null
     $list.Add((Join-Path $env:ProgramFiles "$name\resources")) | Out-Null
     $list.Add((Join-Path ${env:ProgramFiles(x86)} "$name\resources")) | Out-Null
   }
-  # Squirrel-style installs: %LOCALAPPDATA%\Freebuff\app-<version>\resources
   $squirrel = Join-Path $local 'Freebuff'
   if (Test-Path $squirrel) {
     Get-ChildItem $squirrel -Directory -ErrorAction SilentlyContinue | ForEach-Object {
       $list.Add((Join-Path $_.FullName 'resources')) | Out-Null
     }
   }
-  # any \resources folder that contains orchestrator\ui somewhere under Programs
   $programs = Join-Path $local 'Programs'
   if (Test-Path $programs) {
     Get-ChildItem $programs -Directory -ErrorAction SilentlyContinue | Where-Object {
       $_.Name -match 'freebuff'
-    } | ForEach-Object { $list.Add($_.FullName) | Out-Null }
+    } | ForEach-Object {
+      $list.Add($_.FullName) | Out-Null
+      $list.Add((Join-Path $_.FullName 'resources')) | Out-Null
+    }
   }
   return $list
 }
@@ -68,7 +53,6 @@ function Resolve-UiDir {
   return $null
 }
 
-# --- unpack an installer (optional) ----------------------------------------
 if ($Install) {
   if (-not (Test-Path $Install)) { throw "not found: $Install" }
   $sevenZip = @(
@@ -98,6 +82,7 @@ $idx = Join-Path $ui 'index.html'
 function Test-Patched {
   if (-not (Test-Path (Join-Path $ui 'freebuff-rtl.css'))) { return $false }
   if (-not (Test-Path (Join-Path $ui 'freebuff-rtl.js'))) { return $false }
+  if (-not (Test-Path (Join-Path $ui 'fonts\freebuff-rtl\Vazirmatn-Regular.woff2'))) { return $false }
   $html = Get-Content -Raw -LiteralPath $idx
   return ($html -match 'freebuff-rtl\.css' -and $html -match 'freebuff-rtl\.js')
 }
@@ -115,14 +100,13 @@ if (-not (Test-Patched)) {
   Copy-Item (Join-Path $PatchDir 'fonts\*.woff2') $fontDir -Force
 
   $html = Get-Content -Raw -LiteralPath $idx
-  # drop any previous copy of our tags first, then insert once before </head>
   $html = [regex]::Replace($html, '\s*<link[^>]*freebuff-rtl\.css[^>]*/>', '')
   $html = [regex]::Replace($html, '\s*<script[^>]*freebuff-rtl\.js[^>]*></script>', '')
   $tags = "    <link rel=`"stylesheet`" href=`"$CssHref`" />`r`n    <script defer src=`"$JsSrc`"></script>`r`n  "
-  $html = [regex]::Replace($html, '(?i)</head>', ($tags + '</head>'), 1)
+  $html = ([regex]'(?i)</head>').Replace($html, ($tags + '</head>'), 1)
   [System.IO.File]::WriteAllText($idx, $html, (New-Object System.Text.UTF8Encoding($false)))
 }
 
 if (-not (Test-Patched)) { Write-Error 'patch verification failed'; exit 1 }
 Say "done: $uiRoot"
-Say 'اگر Freebuff باز است، ببندش و از منوی برنامه‌ها «Freebuff (فارسی)» را اجرا کن.'
+Say 'اگر Freebuff باز است، ببندش و از میانبر «Freebuff RTL» اجرا کن.'

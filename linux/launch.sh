@@ -1,24 +1,18 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-#  Linux — run Freebuff with the Persian patch
-#
-#      ./linux/launch.sh             patch if needed, then start the app
-#      ./linux/launch.sh --status    report patch state and running instance
-#      ./linux/launch.sh --restart   close the running app, start the patched one
-#      ./linux/launch.sh -- <args>   pass arguments through to the app
-#
-#  Freebuff's updater rewrites the app file it was started from, which drops the
-#  patch. This launcher notices that (the patch files are simply gone) and
-#  rebuilds the patch before starting, so day-to-day you only ever run this.
-# ---------------------------------------------------------------------------
 set -uo pipefail
 
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
 
-usage() { sed -n '4,8p' "$SELF" | sed 's/^# \{0,1\}//'; }
+usage() {
+  cat <<'USAGE'
+./linux/launch.sh             patch if needed, then start the app
+./linux/launch.sh --status    report patch state and running instance
+./linux/launch.sh --restart   close the running app, start the patched one
+./linux/launch.sh -- <args>   pass arguments through to the app
+USAGE
+}
 
-# --- ابزارهای پچ ---------------------------------------------------------------
 find_appimage() {
   local c
   for c in "${FREEBUFF_APPIMAGE:-}" \
@@ -101,7 +95,6 @@ if [[ $RESTART -eq 1 && -n "$(running)" ]]; then
   sleep 1
 fi
 
-# --- پچ در صورت آپدیت ----------------------------------------------------------
 if ! patched; then
   echo "پچ فارسی ساخته نشده — ساخته می‌شود…"
   if [[ -n "$APPIMAGE" ]]; then
@@ -113,7 +106,6 @@ if ! patched; then
   fi
 fi
 
-# --- اجرا ---------------------------------------------------------------------
 if [[ -n "$(running)" ]]; then
   echo "Freebuff از قبل باز است — پنجرهٔ همان جلو می‌آید."
 fi

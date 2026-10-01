@@ -1,26 +1,21 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-#  macOS — patch Freebuff.app (and optionally install it from a .dmg / .zip)
-#
-#      ./macos/apply-macos.sh                       patch the installed app
-#      ./macos/apply-macos.sh --check               only report
-#      ./macos/apply-macos.sh --app ~/Applications/Freebuff.app
-#      ./macos/apply-macos.sh --install ~/Downloads/Freebuff-0.0.155.dmg
-#
-#  The patch lives inside the .app bundle:
-#      Freebuff.app/Contents/Resources/orchestrator/ui/
-#  Editing a bundle invalidates its code signature, so the app is re-signed
-#  ad-hoc afterwards (codesign --force --deep --sign -), which is what macOS
-#  requires for locally modified apps. The quarantine flag is cleared too.
-#
-#  Needs: bash, curl-free — plus `codesign` (comes with macOS/Xcode CLT).
-# ---------------------------------------------------------------------------
 set -euo pipefail
 
 SELF="$0"
 while [ -L "$SELF" ]; do SELF="$(cd "$(dirname "$SELF")" && pwd)/$(readlink "$SELF")"; done
 ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
 UI_REL="Contents/Resources/orchestrator/ui"
+
+usage() {
+  cat <<'USAGE'
+macOS — patch Freebuff.app (and optionally install it from a .dmg / .zip)
+
+    ./macos/apply-macos.sh                       patch the installed app
+    ./macos/apply-macos.sh --check               only report
+    ./macos/apply-macos.sh --app ~/Applications/Freebuff.app
+    ./macos/apply-macos.sh --install ~/Downloads/Freebuff-0.0.155.dmg
+USAGE
+}
 
 APP="${FREEBUFF_APP:-}"
 INSTALL_FROM=""
@@ -32,7 +27,7 @@ while (($#)); do
     --install) INSTALL_FROM="${2:-}"; shift 2 ;;
     --check) CHECK=1; shift ;;
     --quiet) QUIET=1; shift ;;
-    -h | --help) sed -n '3,16p' "$SELF" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) usage; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
@@ -48,7 +43,6 @@ find_app() {
   return 1
 }
 
-# --- نصب از dmg/zip -----------------------------------------------------------
 if [[ -n "$INSTALL_FROM" ]]; then
   [[ -f "$INSTALL_FROM" ]] || { echo "file not found: $INSTALL_FROM" >&2; exit 1; }
   TMP="$(mktemp -d /tmp/fbrtl-install.XXXXXX)"
@@ -111,7 +105,6 @@ if ! is_patched; then
 fi
 is_patched || { echo "patch verification failed" >&2; exit 1; }
 
-# --- امضای مجدد: دست‌زدن به bundle امضایش را باطل می‌کند -----------------------
 if command -v codesign >/dev/null 2>&1; then
   say "re-signing (ad-hoc)…"
   codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || say "  (codesign warned — app usually still runs)"

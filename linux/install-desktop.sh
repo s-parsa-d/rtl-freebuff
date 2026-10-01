@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-#  Linux — install a menu entry (and optionally a terminal command) that
-#  always starts Freebuff through the patched launcher.
-#
-#      ./linux/install-desktop.sh              menu entry only
-#      ./linux/install-desktop.sh --command    + symlink ~/.local/bin/freebuff-rtl
-#      ./linux/install-desktop.sh --remove     undo both
-#
-#  Its Exec= is linux/launch.sh, so after every Freebuff update the patch is
-#  rebuilt automatically before the app starts.
-# ---------------------------------------------------------------------------
 set -euo pipefail
 
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+
+usage() {
+  cat <<'USAGE'
+Linux — install a menu entry (and optionally a terminal command)
+
+    ./linux/install-desktop.sh              menu entry only
+    ./linux/install-desktop.sh --command    + symlink ~/.local/bin/freebuff-rtl
+    ./linux/install-desktop.sh --remove     undo both
+USAGE
+}
 
 APPS="$HOME/.local/share/applications"
 DESKTOP="$APPS/freebuff-rtl.desktop"
@@ -27,7 +26,7 @@ while (($#)); do
   case "$1" in
     --command) COMMAND=1; shift ;;
     --remove) REMOVE=1; shift ;;
-    -h | --help) sed -n '3,13p' "$SELF" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) usage; exit 0 ;;
     *) echo "گزینهٔ ناشناخته: $1" >&2; exit 2 ;;
   esac
 done
@@ -39,7 +38,6 @@ if [[ $REMOVE -eq 1 ]]; then
   exit 0
 fi
 
-# --- آیکن: اگر AppImage در دسترس باشد از خودش می‌کشیم -------------------------
 mkdir -p "$APPS" "$ICON_DIR"
 find_appimage() {
   local c
@@ -60,7 +58,6 @@ if [[ -n "$APP" && ! -f "$ICON" ]]; then
   rm -rf "$TMP"
 fi
 
-# --- دسکتاپ‌آیتم ---------------------------------------------------------------
 {
   echo '[Desktop Entry]'
   echo 'Type=Application'

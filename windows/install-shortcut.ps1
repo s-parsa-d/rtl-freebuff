@@ -1,15 +1,4 @@
-﻿<#
-  Freebuff RTL — Windows shortcuts
-
-    .\windows\install-shortcut.ps1               Desktop + Start Menu shortcut
-    .\windows\install-shortcut.ps1 -NoDesktop    Start Menu only
-    .\windows\install-shortcut.ps1 -Remove       delete both
-
-  The shortcut starts windows\launch-windows.ps1 hidden, which re-applies the
-  patch whenever a Freebuff update removed it. Its icon is the app's own icon,
-  so it looks like a normal Freebuff shortcut.
-#>
-param(
+﻿param(
   [switch]$NoDesktop,
   [switch]$Remove
 )
@@ -30,7 +19,6 @@ if ($Remove) {
   exit 0
 }
 
-# آیکن: از خود فایل اجرایی اپ
 $icon = "$env:SystemRoot\System32\shell32.dll,0"
 $install = $null
 foreach ($c in @(

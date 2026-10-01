@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-/**
- * Links the RTL patch into an extracted Freebuff renderer UI.
- *
- *   node inject.mjs <uiDir>
- *
- * <uiDir> is .../resources/orchestrator/ui inside a Freebuff AppImage. The tags
- * are appended at the end of <head>, so this stylesheet wins over the app's own
- * bundled CSS (same specificity, later in document order). Idempotent: running
- * it twice does not duplicate the tags.
- */
 import fs from 'node:fs'
 import path from 'node:path'
 

@@ -1,16 +1,4 @@
-﻿<#
-  Freebuff RTL — Windows launcher
-
-    .\windows\launch-windows.ps1              patch if needed, then start the app
-    .\windows\launch-windows.ps1 -Status      report the state
-    .\windows\launch-windows.ps1 -Restart     close the running app, then start
-
-  Freebuff's updater replaces the installed files, which removes the patch.
-  This launcher notices that and re-applies it before starting the app, so use
-  it (or the shortcut that install-shortcut.ps1 creates) instead of the plain
-  Freebuff icon.
-#>
-param(
+﻿param(
   [switch]$Status,
   [switch]$Restart,
   [switch]$Windowless
@@ -75,7 +63,6 @@ if ($Restart) {
   }
 }
 
-# --- پچ در صورت آپدیت ---------------------------------------------------------
 & $Apply -Root $install -Check -Quiet | Out-Null
 if ($LASTEXITCODE -ne 0) {
   Write-Host 'پچ فارسی ساخته نشده — ساخته می‌شود…'

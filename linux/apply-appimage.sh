@@ -1,23 +1,20 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-#  Linux — patch a Freebuff AppImage
-#
-#      ./linux/apply-appimage.sh                 auto-detect + patch in place
-#      ./linux/apply-appimage.sh --check         only report (exit 1 if stock)
-#      ./linux/apply-appimage.sh --app <file>    explicit AppImage
-#      ./linux/apply-appimage.sh --out <file>    write the patched copy elsewhere
-#
-#  An AppImage is a read-only squashfs, so the patch has to be baked in: this
-#  extracts it, copies patch/rtl.* + the fonts in, links them from index.html
-#  and repacks it. Only those files change — nothing else of the app is touched.
-#
-#  Needs: bash, the AppImage itself, appimagetool (tools/get-appimagetool.sh).
-# ---------------------------------------------------------------------------
 set -euo pipefail
 
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
 UI_REL="resources/orchestrator/ui"
+
+usage() {
+  cat <<'USAGE'
+Linux — patch a Freebuff AppImage
+
+    ./linux/apply-appimage.sh                 auto-detect + patch in place
+    ./linux/apply-appimage.sh --check         only report (exit 1 if stock)
+    ./linux/apply-appimage.sh --app <file>    explicit AppImage
+    ./linux/apply-appimage.sh --out <file>    write the patched copy elsewhere
+USAGE
+}
 
 APP="${FREEBUFF_APPIMAGE:-}"
 OUT=""
@@ -27,7 +24,7 @@ while (($#)); do
     --app) APP="${2:-}"; shift 2 ;;
     --out) OUT="${2:-}"; shift 2 ;;
     --check) CHECK=1; shift ;;
-    -h | --help) sed -n '3,14p' "$SELF" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) usage; exit 0 ;;
     *) echo "گزینهٔ ناشناخته: $1" >&2; exit 2 ;;
   esac
 done
@@ -51,7 +48,6 @@ fi
 [[ -x "$APP" ]] || chmod +x "$APP"
 OUT="${OUT:-$APP}"
 
-# داخل خود AppImage پچ شده است؟ (فقط index.html و پچ را بیرون می‌کشیم)
 check_patched() {
   local tmp
   tmp="$(mktemp -d /tmp/fbrtl-check.XXXXXX)"
@@ -73,7 +69,6 @@ if [[ $CHECK -eq 1 ]]; then
   exit 1
 fi
 
-# --- ابزار بسته‌بندی ----------------------------------------------------------
 TOOL="${APPIMAGETOOL:-}"
 if [[ -z "$TOOL" ]]; then
   for c in "$ROOT/tools/appimagetool.AppImage" "$(command -v appimagetool || true)"; do
@@ -117,7 +112,6 @@ if grep -q 'freebuff-rtl.css' "$IDX" && grep -q 'freebuff-rtl.js' "$IDX"; then
 elif command -v node >/dev/null 2>&1; then
   node "$ROOT/tools/inject.mjs" "$UI"
 else
-  # همان کارِ inject.mjs، بدون نیاز به Node
   grep -v 'freebuff-rtl\.\(css\|js\)' "$IDX" >"$IDX.tmp" && mv "$IDX.tmp" "$IDX"
   sed -i '0,/<\/head>/s|</head>|    <link rel="stylesheet" href="./freebuff-rtl.css" />\n    <script defer src="./freebuff-rtl.js"></script>\n  </head>|' "$IDX"
   echo "        index.html لینک شد (بدون Node)"

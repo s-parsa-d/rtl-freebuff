@@ -1,22 +1,4 @@
 #!/usr/bin/env node
-/**
- * Freebuff RTL — cross-platform patcher (Node >= 18, no dependencies).
- *
- *   node tools/apply.mjs --root <dir>      patch the app found under <dir>
- *   node tools/apply.mjs --root <dir> --check    only report whether it is patched
- *   node tools/apply.mjs --root <dir> --list     print the resolved UI directory
- *
- * <dir> may be any of:
- *   macOS   : /Applications/Freebuff.app/Contents/Resources
- *   Windows : %LOCALAPPDATA%\Programs\Freebuff\resources
- *   Linux   : <squashfs-root>/resources   (extracted AppImage)
- *             /opt/Freebuff/resources     (deb/rpm/tar install)
- *   any     : the UI directory itself (.../orchestrator/ui)
- *
- * Everything the patch needs is copied *into* the app (fonts included), so the
- * patched app works offline. The patch is additive and idempotent: it never
- * rewrites a file that belongs to the app.
- */
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -43,7 +25,6 @@ if (!fs.existsSync(PATCH)) {
   process.exit(1)
 }
 
-/** Locate the renderer UI directory (the one holding index.html). */
 function findUiDir(base) {
   const candidates = [
     base,
@@ -85,7 +66,6 @@ if (flag('--check')) {
   process.exit(ok ? 0 : 1)
 }
 
-// --- copy the patch into the app -------------------------------------------
 fs.copyFileSync(path.join(PATCH, 'rtl.css'), path.join(uiDir, 'freebuff-rtl.css'))
 fs.copyFileSync(path.join(PATCH, 'rtl.js'), path.join(uiDir, 'freebuff-rtl.js'))
 
@@ -95,7 +75,6 @@ for (const f of fs.readdirSync(path.join(PATCH, 'fonts'))) {
   if (f.endsWith('.woff2')) fs.copyFileSync(path.join(PATCH, 'fonts', f), path.join(fontDir, f))
 }
 
-// --- link them from index.html (idempotent) --------------------------------
 let html = readHtml()
 if (!/<\/head>/i.test(html)) {
   console.error('index.html has no </head> — the UI layout changed, patch aborted')

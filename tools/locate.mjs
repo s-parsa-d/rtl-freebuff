@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * Freebuff RTL — find Freebuff desktop installs on this machine.
- *
- *   node tools/locate.mjs           list candidate install locations
- *   node tools/locate.mjs --json    machine-readable
- *
- * It only reads the filesystem; nothing is modified. Handy to see where the
- * patch has to go (`--src` prints the directory to hand to apply.mjs).
- */
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
@@ -20,7 +11,6 @@ function add(p) {
   if (p && fs.existsSync(p) && !roots.includes(p)) roots.push(p)
 }
 
-/** Every existing directory that looks like a Freebuff `resources` folder. */
 function scanForResourcesDirs(dir, depth = 3) {
   if (depth < 0) return
   let entries = []
@@ -66,7 +56,6 @@ if (process.platform === 'darwin') {
     }
   }
   add('/usr/lib/freebuff/resources')
-  // extracted AppImage / AppDir layouts
   for (const base of ['/tmp', home]) {
     try {
       for (const e of fs.readdirSync(base)) {
@@ -76,7 +65,6 @@ if (process.platform === 'darwin') {
   }
 }
 
-// AppImages are single files, not directories — report them separately.
 const appImages = []
 for (const dir of [path.join(home, '.local', 'bin'), path.join(home, 'Applications'), home]) {
   try {

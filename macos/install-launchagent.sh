@@ -1,16 +1,4 @@
 #!/bin/bash
-# ---------------------------------------------------------------------------
-#  macOS — keep the patch alive without you thinking about it (optional)
-#
-#      ./macos/install-launchagent.sh            install + load the agent
-#      ./macos/install-launchagent.sh --remove   unload + delete it
-#
-#  It writes ~/Library/LaunchAgents/com.freebuff.rtl.plist with:
-#    • RunAtLoad   — repatch at login
-#    • WatchPaths  — repatch whenever Freebuff.app changes, which is exactly
-#                    what an app update does (the new bundle drops the patch)
-#  The agent calls apply-macos.sh --quiet, so it stays silent.
-# ---------------------------------------------------------------------------
 set -euo pipefail
 
 SELF="$0"
