@@ -37,6 +37,14 @@ git clone <repo> "freebuff RTL" && cd "freebuff RTL"
 freebuff-rtl                         # run (auto-repatch on update, then start)
 ```
 
+**Menu icon:** put your own icon at
+`~/.local/icons/freebuff.png` **before** running `install-desktop.sh` and the
+menu entry will use exactly that file. If the file is not there, the script
+extracts the app's own icon from the AppImage once and installs it into
+`~/.local/share/icons/hicolor/256x256/apps/freebuff-rtl.png`. If the app is not
+visible in the launcher menu right away, log out and back in (or `Alt+F2` → `r`
+on X11).
+
 An AppImage is a read-only squashfs, so the patch is baked in: extract → copy the
 patch → repack → verify. If the app is somewhere unusual, use
 `./linux/apply-appimage.sh --app /path/Freebuff.AppImage` or `FREEBUFF_APPIMAGE=...`.

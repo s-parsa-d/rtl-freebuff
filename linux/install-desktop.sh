@@ -15,8 +15,11 @@ USAGE
 }
 
 APPS="$HOME/.local/share/applications"
-DESKTOP="$APPS/freebuff-rtl.desktop"
+DESKTOP="$APPS/freebuff.desktop"
 BIN="$HOME/.local/bin/freebuff-rtl"
+# Icon: the user may drop their own icon here (see README); otherwise it is
+# extracted from the AppImage once and stored next to it.
+ICON_USER="$HOME/.local/icons/freebuff.png"
 ICON_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
 ICON="$ICON_DIR/freebuff-rtl.png"
 
@@ -33,12 +36,16 @@ done
 
 if [[ $REMOVE -eq 1 ]]; then
   rm -f "$DESKTOP" "$BIN" "$ICON"
+  # never delete the user's own icon
   command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" >/dev/null 2>&1 || true
   echo "حذف شد: $DESKTOP و $BIN"
   exit 0
 fi
 
 mkdir -p "$APPS" "$ICON_DIR"
+if [[ -f "$ICON_USER" ]]; then
+  ICON="$ICON_USER"            # user-provided icon wins, used by absolute path
+fi
 find_appimage() {
   local c
   for c in "${FREEBUFF_APPIMAGE:-}" \
@@ -61,13 +68,19 @@ fi
 {
   echo '[Desktop Entry]'
   echo 'Type=Application'
-  echo 'Name=Freebuff (فارسی)'
+  echo 'Name=Freebuff RTL'
   echo 'Comment=Freebuff با فونت فارسی و راست‌چین‌سازی چت'
   echo "Exec=\"$ROOT/linux/launch.sh\" %U"
   echo 'Terminal=false'
   echo 'Categories=Development;'
   echo 'StartupWMClass=Freebuff'
-  [[ -f "$ICON" ]] && echo 'Icon=freebuff-rtl'
+  if [[ -f "$ICON" ]]; then
+    if [[ "$ICON" == "$ICON_USER" ]]; then
+      echo "Icon=$ICON"      # absolute path for the user's own file
+    else
+      echo 'Icon=freebuff-rtl'
+    fi
+  fi
 } >"$DESKTOP"
 chmod 644 "$DESKTOP"
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" >/dev/null 2>&1 || true
