@@ -23,11 +23,11 @@ while (($#)); do
     --check) MODE="check"; shift ;;
     --list) MODE="list"; shift ;;
     -h | --help) usage; exit 0 ;;
-    *) echo "گزینهٔ ناشناخته: $1" >&2; exit 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
-command -v node >/dev/null 2>&1 || { echo "node لازم است (برای tools/apply.mjs)." >&2; exit 1; }
+command -v node >/dev/null 2>&1 || { echo "node is required (for tools/apply.mjs)." >&2; exit 1; }
 
 candidates() {
   local c
@@ -49,14 +49,14 @@ if [[ -z "$TARGET" ]]; then
   TARGET="$(candidates | head -1 || true)"
 fi
 if [[ -z "$TARGET" || ! -f "$TARGET/resources/orchestrator/ui/index.html" ]]; then
-  echo "نصب دایرکتوری Freebuff پیدا نشد. با --root مسیر بده (مثلاً /opt/Freebuff)." >&2
-  echo "اگر AppImage داری از linux/apply-appimage.sh استفاده کن." >&2
+  echo "Freebuff directory install not found. Pass --root <dir> (e.g. /opt/Freebuff)." >&2
+  echo "If you have the AppImage, use linux/apply-appimage.sh instead." >&2
   exit 1
 fi
 
 case "$MODE" in
   list)
-    echo "نصب‌های پیدا‌شده:"
+    echo "Found installs:"
     candidates | sed 's/^/  /'
     exit 0
     ;;
@@ -66,7 +66,7 @@ case "$MODE" in
 esac
 
 if ! node "$ROOT/tools/apply.mjs" --root "$TARGET"; then
-  echo "پچ نشد." >&2
+  echo "Patching failed." >&2
   exit 1
 fi
-echo "انجام شد. Freebuff را از نو باز کن (اگر در /opt است و اجازه نداشتی، با sudo اجرا کن)."
+echo "Done. Restart Freebuff (if it lives in /opt and you lack permission, rerun with sudo)."

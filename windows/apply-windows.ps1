@@ -109,4 +109,4 @@ if (-not (Test-Patched)) {
 
 if (-not (Test-Patched)) { Write-Error 'patch verification failed'; exit 1 }
 Say "done: $uiRoot"
-Say 'اگر Freebuff باز است، ببندش و از میانبر «Freebuff RTL» اجرا کن.'
+Say 'If Freebuff is open, close it and launch via the "Freebuff RTL" shortcut.'

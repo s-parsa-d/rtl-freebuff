@@ -87,8 +87,8 @@ const patched = (root) => {
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify({ roots: roots.map((r) => ({ path: r, patched: patched(r) })), appImages }, null, 2))
 } else {
-  if (!roots.length && !appImages.length) console.log('Freebuff نصب‌شده‌ای پیدا نشد.')
+  if (!roots.length && !appImages.length) console.log('No Freebuff install found.')
   for (const r of roots) console.log(`${patched(r) ? '✅ patched ' : '⚠  stock  '} ${r}`)
   for (const a of appImages) console.log(`   appimage  ${a}`)
-  if (roots.length) console.log(`\nبرای پچ‌کردن: node tools/apply.mjs --root "${roots[0]}"`)
+  if (roots.length) console.log(`\nTo patch: node tools/apply.mjs --root "${roots[0]}"`)
 }

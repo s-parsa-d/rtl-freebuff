@@ -25,7 +25,7 @@ while (($#)); do
     --out) OUT="${2:-}"; shift 2 ;;
     --check) CHECK=1; shift ;;
     -h | --help) usage; exit 0 ;;
-    *) echo "گزینهٔ ناشناخته: $1" >&2; exit 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
@@ -42,7 +42,7 @@ find_appimage() {
 
 [[ -n "$APP" ]] || APP="$(find_appimage || true)"
 if [[ -z "$APP" || ! -f "$APP" ]]; then
-  echo "AppImage پیدا نشد. با --app مسیر بده یا FREEBUFF_APPIMAGE=... ست کن." >&2
+  echo "AppImage not found. Pass --app <file> or set FREEBUFF_APPIMAGE=..." >&2
   exit 1
 fi
 [[ -x "$APP" ]] || chmod +x "$APP"
@@ -76,7 +76,7 @@ if [[ -z "$TOOL" ]]; then
   done
 fi
 if [[ -z "$TOOL" ]]; then
-  echo "appimagetool پیدا نشد — «tools/get-appimagetool.sh» را اجرا کن یا APPIMAGETOOL=/path/to/appimagetool بده." >&2
+  echo "appimagetool not found — run 'tools/get-appimagetool.sh' first, or set APPIMAGETOOL=/path/to/appimagetool." >&2
   exit 1
 fi
 
@@ -90,17 +90,17 @@ esac
 WORK="$(mktemp -d /tmp/fbrtl-build.XXXXXX)"
 trap 'rm -rf "$WORK"' EXIT
 
-echo "[1/4] استخراج $(basename "$APP")"
+echo "[1/4] Extracting $(basename "$APP")"
 (cd "$WORK" && "$APP" --appimage-extract >/dev/null)
 
 APPDIR="$WORK/squashfs-root"
 UI="$APPDIR/$UI_REL"
 if [[ ! -d "$UI" ]]; then
-  echo "ساختار AppImage عوض شده — «$UI_REL» پیدا نشد." >&2
+  echo "AppImage layout changed — '$UI_REL' not found." >&2
   exit 1
 fi
 
-echo "[2/4] کپی پچ داخل UI"
+echo "[2/4] Copying patch into the UI"
 install -m 644 "$ROOT/patch/rtl.css" "$UI/freebuff-rtl.css"
 install -m 644 "$ROOT/patch/rtl.js" "$UI/freebuff-rtl.js"
 mkdir -p "$UI/fonts/freebuff-rtl"
@@ -108,17 +108,17 @@ cp -f "$ROOT/patch/fonts/"*.woff2 "$UI/fonts/freebuff-rtl/"
 
 IDX="$UI/index.html"
 if grep -q 'freebuff-rtl.css' "$IDX" && grep -q 'freebuff-rtl.js' "$IDX"; then
-  echo "        index.html از قبل لینک شده"
+  echo "        index.html already linked"
 elif command -v node >/dev/null 2>&1; then
   node "$ROOT/tools/inject.mjs" "$UI"
 else
   grep -v 'freebuff-rtl\.\(css\|js\)' "$IDX" >"$IDX.tmp" && mv "$IDX.tmp" "$IDX"
   sed -i '0,/<\/head>/s|</head>|    <link rel="stylesheet" href="./freebuff-rtl.css" />\n    <script defer src="./freebuff-rtl.js"></script>\n  </head>|' "$IDX"
-  echo "        index.html لینک شد (بدون Node)"
+  echo "        index.html linked (without Node)"
 fi
-grep -q 'freebuff-rtl.css' "$IDX" || { echo "لینک‌کردن پچ نشد." >&2; exit 1; }
+grep -q 'freebuff-rtl.css' "$IDX" || { echo "Failed to link the patch." >&2; exit 1; }
 
-echo "[3/4] بسته‌بندی مجدد"
+echo "[3/4] Repacking"
 TMPOUT="${OUT}.building"
 rm -f "$TMPOUT"
 if ! ARCH="$ARCH_APPIMAGE" "$TOOL" --no-appstream "$APPDIR" "$TMPOUT" >>"$ROOT/build.log" 2>&1; then
@@ -127,18 +127,18 @@ if ! ARCH="$ARCH_APPIMAGE" "$TOOL" --no-appstream "$APPDIR" "$TMPOUT" >>"$ROOT/b
   fi
 fi
 if [[ ! -s "$TMPOUT" ]]; then
-  echo "بسته‌بندی نشد — جزئیات: $ROOT/build.log" >&2
+  echo "Repacking failed — details: $ROOT/build.log" >&2
   exit 1
 fi
 chmod +x "$TMPOUT"
 
-echo "[4/4] بازبینی خروجی"
+echo "[4/4] Verifying the output"
 if ! check_patched "$TMPOUT"; then
-  echo "بازبینی نشد: پچ داخل AppImage ساخته‌شده فعال نیست." >&2
+  echo "Verification failed: the patch is not active inside the built AppImage." >&2
   rm -f "$TMPOUT"
   exit 1
 fi
 
 mkdir -p "$(dirname "$OUT")"
 mv -f "$TMPOUT" "$OUT"
-echo "انجام شد: $OUT ($(du -h "$OUT" | cut -f1))"
+echo "Done: $OUT ($(du -h "$OUT" | cut -f1))"

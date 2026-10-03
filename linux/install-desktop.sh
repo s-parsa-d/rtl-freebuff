@@ -30,7 +30,7 @@ while (($#)); do
     --command) COMMAND=1; shift ;;
     --remove) REMOVE=1; shift ;;
     -h | --help) usage; exit 0 ;;
-    *) echo "گزینهٔ ناشناخته: $1" >&2; exit 2 ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
@@ -38,7 +38,7 @@ if [[ $REMOVE -eq 1 ]]; then
   rm -f "$DESKTOP" "$BIN" "$ICON"
   # never delete the user's own icon
   command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" >/dev/null 2>&1 || true
-  echo "حذف شد: $DESKTOP و $BIN"
+  echo "Removed: $DESKTOP and $BIN"
   exit 0
 fi
 
@@ -69,7 +69,7 @@ fi
   echo '[Desktop Entry]'
   echo 'Type=Application'
   echo 'Name=Freebuff RTL'
-  echo 'Comment=Freebuff با فونت فارسی و راست‌چین‌سازی چت'
+  echo 'Comment=Freebuff with Persian font and RTL chat'
   echo "Exec=\"$ROOT/linux/launch.sh\" %U"
   echo 'Terminal=false'
   echo 'Categories=Development;'
@@ -84,14 +84,14 @@ fi
 } >"$DESKTOP"
 chmod 644 "$DESKTOP"
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" >/dev/null 2>&1 || true
-echo "دسکتاپ‌آیتم ساخته شد: $DESKTOP"
+echo "Desktop entry created: $DESKTOP"
 
 if [[ $COMMAND -eq 1 ]]; then
   mkdir -p "$(dirname "$BIN")"
   ln -sfn "$ROOT/linux/launch.sh" "$BIN"
-  echo "دستور ساخته شد: $BIN"
+  echo "Command created: $BIN"
   case ":$PATH:" in
     *":$HOME/.local/bin:"*) ;;
-    *) echo "توجه: ~/.local/bin در PATH نیست — آن را به PATH اضافه کن." ;;
+    *) echo "Note: ~/.local/bin is not in PATH — add it to your PATH." ;;
   esac
 fi

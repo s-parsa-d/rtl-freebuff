@@ -26,12 +26,12 @@ if [[ -z "$APP" ]]; then
     [[ -d "$c" ]] && { APP="$c"; break; }
   done
 fi
-[[ -n "$APP" && -d "$APP" ]] || { echo "Freebuff.app پیدا نشد — FREEBUFF_APP=/path/to/Freebuff.app بده." >&2; exit 1; }
+[[ -n "$APP" && -d "$APP" ]] || { echo "Freebuff.app not found — set FREEBUFF_APP=/path/to/Freebuff.app." >&2; exit 1; }
 
 status() {
-  echo "اپ      : $APP"
-  if "$APPLY" --app "$APP" --check --quiet; then echo "پچ فارسی: اعمال‌شده ✅"; else echo "پچ فارسی: اعمال‌نشده"; fi
-  if pgrep -f "$APP/Contents/MacOS" >/dev/null 2>&1; then echo "اجرا    : بله"; else echo "اجرا    : نه"; fi
+  echo "App      : $APP"
+  if "$APPLY" --app "$APP" --check --quiet; then echo "RTL patch: applied ✅"; else echo "RTL patch: not applied"; fi
+  if pgrep -f "$APP/Contents/MacOS" >/dev/null 2>&1; then echo "Running  : yes"; else echo "Running  : no"; fi
 }
 
 case "${1:-}" in
@@ -39,7 +39,7 @@ case "${1:-}" in
   --restart | -r)
     if pgrep -f "$APP/Contents/MacOS" >/dev/null 2>&1; then
       NAME="$(basename "$APP" .app)"
-      echo "بستن «$NAME»…"
+      echo "Quitting $NAME…"
       osascript -e "quit app \"$NAME\"" >/dev/null 2>&1 || pkill -f "$APP/Contents/MacOS" || true
       for _ in $(seq 1 20); do pgrep -f "$APP/Contents/MacOS" >/dev/null 2>&1 || break; sleep 0.5; done
     fi
@@ -47,12 +47,12 @@ case "${1:-}" in
 esac
 
 if ! "$APPLY" --app "$APP" --check --quiet; then
-  echo "پچ فارسی ساخته نشده — ساخته می‌شود…"
-  "$APPLY" --app "$APP" --quiet || echo "پچ نشد؛ اپ بدون پچ اجرا می‌شود." >&2
+  echo "RTL patch missing — building it…"
+  "$APPLY" --app "$APP" --quiet || echo "Patching failed; starting the app without the patch." >&2
 fi
 
 set --
 open "$APP" 2>/dev/null || open -a "$APP" 2>/dev/null || {
-  echo "اجرای اپ نشد — یک‌بار خودش را باز کن و اجازهٔ Gatekeeper بده." >&2
+  echo "Could not open the app — open it once manually and grant the Gatekeeper permission." >&2
   exit 1
 }

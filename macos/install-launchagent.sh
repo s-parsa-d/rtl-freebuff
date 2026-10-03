@@ -13,12 +13,12 @@ if [[ -z "$APP" ]]; then
     [[ -d "$c" ]] && { APP="$c"; break; }
   done
 fi
-[[ -n "$APP" && -d "$APP" ]] || { echo "Freebuff.app پیدا نشد — FREEBUFF_APP=/Applications/Freebuff.app بده." >&2; exit 1; }
+[[ -n "$APP" && -d "$APP" ]] || { echo "Freebuff.app not found — set FREEBUFF_APP=/Applications/Freebuff.app." >&2; exit 1; }
 
 if [[ "${1:-}" == "--remove" ]]; then
   launchctl bootout "gui/$(id -u)/$LABEL" >/dev/null 2>&1 || launchctl unload "$PLIST" >/dev/null 2>&1 || true
   rm -f "$PLIST"
-  echo "حذف شد: $PLIST"
+  echo "Removed: $PLIST"
   exit 0
 fi
 
@@ -48,5 +48,5 @@ launchctl bootout "gui/$(id -u)/$LABEL" >/dev/null 2>&1 || true
 if ! launchctl bootstrap "gui/$(id -u)" "$PLIST" >/dev/null 2>&1; then
   launchctl load "$PLIST" >/dev/null 2>&1 || true
 fi
-echo "نصب شد: $PLIST"
-echo "هر بار Freebuff آپدیت شود یا وارد سیستم شوی، پچ خودکار برمی‌گردد."
+echo "Installed: $PLIST"
+echo "The patch will be re-applied automatically whenever Freebuff updates or you log in."

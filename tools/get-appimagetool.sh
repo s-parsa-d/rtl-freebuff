@@ -12,12 +12,12 @@ case "$(uname -m)" in
 esac
 
 URL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage"
-echo "دانلود $URL"
+echo "Downloading $URL"
 curl -fL --retry 3 --progress-bar -o "$DEST" "$URL"
 chmod +x "$DEST"
 
 if "$DEST" --version >/dev/null 2>&1 || "$DEST" --appimage-extract-and-run --version >/dev/null 2>&1; then
-  echo "آماده است: $DEST"
+  echo "Ready: $DEST"
 else
-  echo "دانلود شد ولی اجرا نشد — ممکن است FUSE نصب نباشد؛ apply-appimage.sh خودش حالت جایگزین را امتحان می‌کند." >&2
+  echo "Downloaded but could not run it — FUSE may be missing; apply-appimage.sh falls back to --appimage-extract-and-run automatically." >&2
 fi

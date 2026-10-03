@@ -62,15 +62,15 @@ running() { pgrep -f 'mount_Freebu[^/]*/@codebufffreebuff-desktop' 2>/dev/null |
 
 show_status() {
   if [[ -n "$APPIMAGE" ]]; then
-    echo "نصب      : AppImage — $APPIMAGE"
+    echo "Install    : AppImage — $APPIMAGE"
   elif [[ -n "$TARGET" ]]; then
-    echo "نصب      : دایرکتوری — $TARGET"
+    echo "Install    : directory — $TARGET"
   else
-    echo "نصب      : پیدا نشد (FREEBUFF_APPIMAGE یا FREEBUFF_ROOT را ست کن)"
+    echo "Install    : not found (set FREEBUFF_APPIMAGE or FREEBUFF_ROOT)"
     return
   fi
-  if patched; then echo "پچ فارسی: اعمال‌شده ✅"; else echo "پچ فارسی: اعمال‌نشده — اجرای بعدی می‌سازد"; fi
-  if [[ -n "$(running)" ]]; then echo "در حال اجرا: بله"; else echo "در حال اجرا: نه"; fi
+  if patched; then echo "RTL patch : applied ✅"; else echo "RTL patch : not applied — will build on next launch"; fi
+  if [[ -n "$(running)" ]]; then echo "Running    : yes"; else echo "Running    : no"; fi
 }
 
 RESTART=0
@@ -79,16 +79,16 @@ case "${1:-}" in
   --status | -s) show_status; exit 0 ;;
   --restart | -r) RESTART=1; shift ;;
   --) shift ;;
-  -*) echo "گزینهٔ ناشناخته: $1" >&2; usage >&2; exit 2 ;;
+  -*) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
 esac
 
 if [[ -z "$APPIMAGE" && -z "$TARGET" ]]; then
-  echo "Freebuff پیدا نشد. FREEBUFF_APPIMAGE=/path/to/Freebuff.AppImage یا FREEBUFF_ROOT=/opt/Freebuff بده." >&2
+  echo "Freebuff not found. Set FREEBUFF_APPIMAGE=/path/to/Freebuff.AppImage or FREEBUFF_ROOT=/opt/Freebuff." >&2
   exit 1
 fi
 
 if [[ $RESTART -eq 1 && -n "$(running)" ]]; then
-  echo "بستن نسخهٔ باز…"
+  echo "Closing the running instance…"
   pkill -TERM -f 'mount_Freebu[^/]*/@codebufffreebuff-desktop' 2>/dev/null || true
   pkill -TERM -f 'freebuff-desktop' 2>/dev/null || true
   for _ in $(seq 1 30); do [[ -z "$(running)" ]] && break; sleep 0.5; done
@@ -96,18 +96,18 @@ if [[ $RESTART -eq 1 && -n "$(running)" ]]; then
 fi
 
 if ! patched; then
-  echo "پچ فارسی ساخته نشده — ساخته می‌شود…"
+  echo "RTL patch missing — building it…"
   if [[ -n "$APPIMAGE" ]]; then
     "$ROOT/linux/apply-appimage.sh" --app "$APPIMAGE" || {
-      echo "پچ نشد؛ اپ بدون پچ اجرا می‌شود." >&2
+      echo "Patching failed; starting the app without the patch." >&2
     }
   else
-    node "$ROOT/tools/apply.mjs" --root "$TARGET" || echo "پچ نشد؛ اپ بدون پچ اجرا می‌شود." >&2
+    node "$ROOT/tools/apply.mjs" --root "$TARGET" || echo "Patching failed; starting the app without the patch." >&2
   fi
 fi
 
 if [[ -n "$(running)" ]]; then
-  echo "Freebuff از قبل باز است — پنجرهٔ همان جلو می‌آید."
+  echo "Freebuff is already open — bringing its window forward."
 fi
 
 if [[ -n "$APPIMAGE" ]]; then
@@ -116,7 +116,7 @@ fi
 
 BIN="$(app_binary "$TARGET")"
 if [[ -z "$BIN" ]]; then
-  echo "فایل اجرایی اپ در $TARGET پیدا نشد." >&2
+  echo "App binary not found in $TARGET." >&2
   exit 1
 fi
 exec "$BIN" "$@"

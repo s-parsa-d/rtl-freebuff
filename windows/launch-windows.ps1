@@ -39,25 +39,25 @@ function Get-Exe($dir) {
 
 $install = Get-Install
 if (-not $install) {
-  Write-Host 'Freebuff پیدا نشد — اگر جای دیگری نصب است، اول apply-windows.ps1 -Root <dir> را اجرا کن.' -ForegroundColor Yellow
+  Write-Host 'Freebuff not found — if it is installed elsewhere, first run apply-windows.ps1 -Root <dir>.' -ForegroundColor Yellow
   exit 1
 }
 $exe = Get-Exe $install
 
 if ($Status) {
-  Write-Host "نصب      : $install"
-  if ($exe) { Write-Host "فایل اجرا: $exe" }
+  Write-Host "Install    : $install"
+  if ($exe) { Write-Host "Executable : $exe" }
   & $Apply -Root $install -Check -Quiet | Out-Null
-  if ($LASTEXITCODE -eq 0) { Write-Host 'پچ فارسی: اعمال‌شده ✅' } else { Write-Host 'پچ فارسی: اعمال‌نشده' }
+  if ($LASTEXITCODE -eq 0) { Write-Host 'RTL patch : applied ✅' } else { Write-Host 'RTL patch : not applied' }
   $proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path -like "$install*" }
-  if ($proc) { Write-Host 'در حال اجرا: بله' } else { Write-Host 'در حال اجرا: نه' }
+  if ($proc) { Write-Host 'Running    : yes' } else { Write-Host 'Running    : no' }
   exit 0
 }
 
 if ($Restart) {
   $proc = Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path -like "$install*" }
   if ($proc) {
-    Write-Host 'بستن نسخهٔ باز…'
+    Write-Host 'Closing the running instance…'
     $proc | Stop-Process -Force -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 2
   }
@@ -65,9 +65,9 @@ if ($Restart) {
 
 & $Apply -Root $install -Check -Quiet | Out-Null
 if ($LASTEXITCODE -ne 0) {
-  Write-Host 'پچ فارسی ساخته نشده — ساخته می‌شود…'
+  Write-Host 'RTL patch missing — building it…'
   & $Apply -Root $install -Quiet
 }
 
-if (-not $exe) { Write-Host 'فایل اجرایی اپ پیدا نشد.' -ForegroundColor Yellow; exit 1 }
+if (-not $exe) { Write-Host 'App executable not found.' -ForegroundColor Yellow; exit 1 }
 Start-Process -FilePath $exe

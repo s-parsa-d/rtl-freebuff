@@ -15,7 +15,7 @@ if (-not $NoDesktop) { $targets += (Join-Path $desktop "$Name.lnk") }
 
 if ($Remove) {
   foreach ($t in $targets) { Remove-Item $t -Force -ErrorAction SilentlyContinue }
-  Write-Host "حذف شد: $($targets -join ', ')"
+  Write-Host "Removed: $($targets -join ', ')"
   exit 0
 }
 
@@ -47,8 +47,8 @@ foreach ($t in $targets) {
   $sc.Arguments = $arguments
   $sc.WorkingDirectory = $RepoRoot
   $sc.IconLocation = $icon
-  $sc.Description = 'Freebuff با فونت فارسی و راست‌چین‌سازی چت'
+  $sc.Description = 'Freebuff with Persian font and RTL chat'
   $sc.Save()
-  Write-Host "ساخته شد: $t"
+  Write-Host "Created: $t"
 }
-Write-Host 'از این به بعد اپ را از همین میانبر اجرا کن تا پچ بعد از آپدیت هم بماند.'
+Write-Host 'From now on launch the app via this shortcut so the patch survives updates.'
