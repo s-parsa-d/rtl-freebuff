@@ -25,16 +25,49 @@ to `index.html`; no file that belongs to the app is rewritten.
 
 See [`docs/TECHNICAL.md`](docs/TECHNICAL.md) for implementation details.
 
-## Install
-
-### Linux — AppImage (tested ✅)
+## Quick start
 
 ```bash
-git clone <repo> "freebuff RTL" && cd "freebuff RTL"
-./tools/get-appimagetool.sh          # run once; fetches the packaging tool
-./linux/apply-appimage.sh            # find and patch the AppImage (in place)
+git clone https://github.com/s-parsa-d/rtl-freebuff.git
+cd rtl-freebuff
+```
+
+Then run **one patch command**, and from then on start the app through the
+project's launcher:
+
+| System | Patch the app | Then start it with |
+|---|---|---|
+| Linux — AppImage | `./tools/get-appimagetool.sh` then `./linux/apply-appimage.sh` | `./linux/install-desktop.sh --command`, then `freebuff-rtl` |
+| Linux — deb / rpm / pacman / tar | `./linux/apply-dir.sh` (add `--root /opt/Freebuff` if needed) | `./linux/launch.sh` |
+| macOS | `./macos/apply-macos.sh` | `./macos/launch.command` |
+| Windows (PowerShell) | `.\windows\apply-windows.ps1` | `.\windows\install-shortcut.ps1`, then the **Freebuff RTL** shortcut |
+
+Confirm it worked:
+
+```bash
+./linux/apply-appimage.sh --check      # or: ./macos/apply-macos.sh --check
+```
+
+That is the whole flow. The launcher is not optional: Freebuff's updater deletes
+the patch on every update, and the launcher puts it back before starting the app
+(see [After every update](#after-every-update-important)).
+
+**Requirements:** a POSIX shell with `git` and `curl` for Linux/macOS — plus
+**Node.js** for the Linux directory install (`apply-dir.sh`) — or **PowerShell
+5.1+** on Windows. The Persian fonts are bundled, so nothing else is downloaded
+after the clone. If macOS asks for permission on the first run, see
+[macOS permissions](#macos-permissions-one-time).
+
+## Install
+
+### Linux — AppImage 
+
+```bash
+cd rtl-freebuff                                         # from the Quick start clone
+./tools/get-appimagetool.sh                 # run once; fetches the packaging tool
+./linux/apply-appimage.sh                    # find and patch the AppImage (in place)
 ./linux/install-desktop.sh --command # menu entry + `freebuff-rtl` command
-freebuff-rtl                         # run (auto-repatch on update, then start)
+freebuff-rtl                                              # run (auto-repatch on update, then start)
 ```
 
 **Menu icon:** put your own icon at
@@ -56,7 +89,7 @@ patch → repack → verify. If the app is somewhere unusual, use
 sudo ./linux/apply-dir.sh --root /opt/Freebuff   # if installed under /opt
 ```
 
-### macOS
+### macOS — Apple Silicon and Intel 
 
 ```bash
 ./macos/apply-macos.sh                       # patch the installed Freebuff.app
@@ -65,9 +98,27 @@ sudo ./linux/apply-dir.sh --root /opt/Freebuff   # if installed under /opt
 ./macos/install-launchagent.sh               # (optional) auto-patch after every update/login
 ```
 
-Touching a `.app` invalidates its code signature, so the script re-signs it
-**ad-hoc** afterwards (`codesign --force --deep --sign -`) and clears the
-quarantine flag. If Gatekeeper complains, open it once via right-click → Open.
+The patch writes *inside* the `Freebuff.app` bundle, which invalidates the
+vendor's code signature, so the script re-signs the bundle **ad-hoc** afterwards
+(`codesign --force --deep --sign -`) and clears the quarantine flag. Because the
+app is therefore no longer signed by an identified developer, macOS asks you to
+allow it **once** — the exact prompts and the one-line fixes are in
+[macOS permissions](#macos-permissions-one-time) below.
+
+#### macOS permissions (one-time)
+
+macOS protects application bundles, so the first run asks for permission. Grant
+it once and `launch.command` (or the LaunchAgent) works silently afterwards.
+
+| What macOS shows | When | How to allow it |
+|---|---|---|
+| *“… would like to administer applications on your Mac”*, or the patch fails with `Operation not permitted` | while patching, when the app lives in `/Applications` | **System Settings → Privacy & Security → App Management** → turn on your terminal app (Terminal / iTerm / VS Code), then re-run the script |
+| *“Apple could not verify ‘Freebuff’ is free of malware”* or *“Freebuff is damaged and can't be opened”* | first launch after patching (the ad-hoc signature is not from an identified developer) | **Finder → right-click the app → Open → Open** (once), or **System Settings → Privacy & Security → Open Anyway** |
+| *“Terminal wants access to control Freebuff”* | `./macos/launch.command --restart` (it uses `osascript` to quit the app first) | click **OK**, or allow your terminal under **Privacy & Security → Automation** |
+
+If the script still cannot write into the bundle, give your terminal **Full Disk
+Access** (Privacy & Security → Full Disk Access) and run it again. These are all
+one-time prompts tied to your terminal app, not to Freebuff.
 
 ### Windows
 
@@ -131,22 +182,23 @@ version arrived), rebuilds the patch, then starts the app.
 | `windows/install-shortcut.ps1` | Desktop / Start menu shortcut |
 | `docs/TECHNICAL.md` | Design and implementation notes |
 
-## Test status
-
-| Platform | Status |
-|---|---|
-| Linux / AppImage (x86_64) | ✅ tested on Arch (patch, image verification, run, repatch after update) |
-| Linux / directory install | ✅ shared logic `tools/apply.mjs` tested |
-| macOS | ⚠️ scripts written but not tested on a Mac (paths and `codesign` are standard) |
-| Windows | ✅ tested on Windows 10/11 (patch, Desktop/Start shortcuts, launcher) |
-
-If you run it on a Mac or Windows and hit an error, please open an issue.
-
 ## Troubleshooting
 
 - **The patch has no effect:** close the app completely and open it from the
   launcher. Freebuff is single-instance; if its window is open, running it again
   just brings that window forward.
+- **macOS: “Operation not permitted” while patching, or macOS refuses to write
+  into the `.app`:** your terminal lacks **App Management** permission — allow it
+  in System Settings → Privacy & Security (see
+  [macOS permissions](#macos-permissions-one-time)) and re-run the script.
+- **macOS: the app is blocked on first launch:** this is expected after the
+  ad-hoc re-sign. Right-click the app → **Open** once, or use Privacy & Security →
+  **Open Anyway**. Re-running `./macos/apply-macos.sh` clears the quarantine flag
+  again if it comes back after an update.
+- **macOS: the UI lost the Persian patch after an update:** the updater
+  replaced the bundle, so the patch went with it. Re-run `./macos/apply-macos.sh`
+  (or just `./macos/launch.command`, which patches on demand) and confirm with
+  `./macos/apply-macos.sh --check`.
 - **How do I know the patch is on disk?** `./linux/apply-appimage.sh --check`,
   `./macos/apply-macos.sh --check`, `.\windows\apply-windows.ps1 -Check`, or on
   Linux `node tools/locate.mjs`.
@@ -163,6 +215,10 @@ If you run it on a Mac or Windows and hit an error, please open an issue.
   `<link rel="stylesheet" href="./freebuff-rtl.css" />` and
   `<script defer src="./freebuff-rtl.js"></script>` from `index.html` — or
   reinstall the app from the vendor's site.
+
+## Getting help
+
+If you hit an error on any platform, please open an issue. 
 
 ## License
 

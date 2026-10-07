@@ -120,7 +120,7 @@ directory and link them from `index.html`; the shared Node implementation is
 |---|---|---|
 | Linux / AppImage | `linux/apply-appimage.sh` | AppImage is read-only squashfs → extract, copy patch, repack with `appimagetool`, re-verify. |
 | Linux / directory | `linux/apply-dir.sh` | deb/rpm/pacman/tar layout → patch plain files in place via `tools/apply.mjs`. |
-| macOS | `macos/apply-macos.sh` | patch `Freebuff.app/Contents/Resources/orchestrator/ui`, then **ad-hoc re-sign** (`codesign --force --deep --sign -`) because editing a bundle invalidates its signature; clears the quarantine flag. Can install from `.dmg`/`.zip` first. |
+| macOS | `macos/apply-macos.sh` | patch `Freebuff.app/Contents/Resources/orchestrator/ui`, then **ad-hoc re-sign** (`codesign --force --deep --sign -`) because editing a bundle invalidates its signature; clears the quarantine flag. Can install from `.dmg`/`.zip` first. Needs a one-time macOS permission grant (App Management for the terminal; Gatekeeper allow on first launch) — the bundle is no longer signed by an identified developer. |
 | Windows | `windows/apply-windows.ps1` | pure PowerShell, no Node: locate the install (incl. `@codebufffreebuff-desktop`), copy the patch, inject the tags. |
 
 Known Windows install layouts:
@@ -156,5 +156,7 @@ updated, so rebuild the patch before starting.
   patches the extracted tree, but a normal install afterwards overwrites it;
   the launcher re-patches the real install anyway, so that path is only useful
   for inspection.
-- The macOS scripts were written to standard paths but have not been tested on
-  real hardware.
+- The macOS scripts are confirmed working on Apple Silicon and Intel Macs, but
+  modifying a signed bundle makes macOS prompt for permission the first time
+  (App Management for the terminal, Gatekeeper allow for the app). If the user
+  declines a prompt, the patch does not stick after the next launch.
